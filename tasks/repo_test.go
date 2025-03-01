@@ -19,7 +19,8 @@ func setupGitRepo(t *testing.T) (string, func()) {
 
 	// Initialize Git repo
 	cmd := exec.Command("git", "init", tempDir)
-	if err := cmd.Run(); err != nil {
+	err = cmd.Run()
+	if err != nil {
 		t.Fatalf("failed to initialize git repo: %v", err)
 	}
 
@@ -46,10 +47,19 @@ func TestIsGitRepo(t *testing.T) {
 
 		// Change to the new directory to simulate being outside a Git repo
 		originalDir, _ := os.Getwd()
-		defer os.Chdir(originalDir) // Restore original directory after test
-		os.Chdir(tmpDir)
+		// Restore original directory after test
+		defer func() {
+			err := os.Chdir(originalDir)
+			if err != nil {
+				t.Logf("failed to restore original directory: %v", err)
+			}
+		}()
+		err := os.Chdir(tmpDir)
+		if err != nil {
+			t.Fatalf("failed to change to temp directory: %v", err)
+		}
 
-		err := tasks.IsGitRepo()
+		err = tasks.IsGitRepo()
 		if err == nil {
 			t.Errorf("expected error, got none")
 		}
