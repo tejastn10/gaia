@@ -12,8 +12,9 @@ import (
 var defaultMessage = "feat: initialize project"
 
 var rootCmd = &cobra.Command{
-	Use:   "gaia [commit message]",
-	Short: "Modify the first commit in a git repository",
+	Use:     "gaia [commit message]",
+	Version: "1.2.0",
+	Short:   "Modify the first commit in a git repository",
 	Long: `A CLI tool that checks if the current directory is a git repository
 and updates the very first commit with a new commit message.
 
