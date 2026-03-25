@@ -68,8 +68,18 @@ func TestIsGitRepo(t *testing.T) {
 
 func TestIsGitClean(t *testing.T) {
 	t.Run("clean git repo", func(t *testing.T) {
-		_, cleanup := setupGitRepo(t)
+		tempDir, cleanup := setupGitRepo(t)
 		defer cleanup()
+
+		originalDir, _ := os.Getwd()
+		defer func() {
+			if err := os.Chdir(originalDir); err != nil {
+				t.Logf("failed to restore original directory: %v", err)
+			}
+		}()
+		if err := os.Chdir(tempDir); err != nil {
+			t.Fatalf("failed to chdir into temp repo: %v", err)
+		}
 
 		clean, err := tasks.IsGitClean()
 		if err != nil || !clean {
