@@ -1,6 +1,6 @@
 module github.com/tejastn10/gaia
 
-go 1.23.3
+go 1.23.12
 
 require github.com/spf13/cobra v1.10.2
 
