@@ -37,14 +37,15 @@ func UpdateFirstCommit(ctx context.Context, message string) error {
 		return errors.New("working tree is not clean, commit or stash changes first")
 	}
 
-	// Automate replacing 'pick' with 'edit' in rebase sequence
-	rebaseCmd := exec.CommandContext(ctx, "bash", "-c", "GIT_SEQUENCE_EDITOR=\"sed -i.bak 's/^pick /edit /'\" git rebase -i --root")
+	// Automate replacing 'pick' with 'edit' only for the first commit in rebase sequence
+	rebaseCmd := exec.CommandContext(ctx, "bash", "-c", "GIT_SEQUENCE_EDITOR=\"sed -i.bak '1s/^pick /edit /'\" git rebase -i --root")
 	err = rebaseCmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to start interactive rebase: %w", err)
 	}
 
 	// Amend commit message
+	// #nosec G204 -- message is passed as a discrete argument to exec.CommandContext, not interpolated into a shell string, so there is no injection risk
 	err = exec.CommandContext(ctx, "git", "commit", "--amend", "-m", message).Run()
 	if err != nil {
 		if abortErr := exec.CommandContext(ctx, "git", "rebase", "--abort").Run(); abortErr != nil {
@@ -63,23 +64,6 @@ func UpdateFirstCommit(ctx context.Context, message string) error {
 	}
 
 	fmt.Printf("Successfully updated first commit: \"%s\"\n", message)
-
-	// Ask user for force push
-	fmt.Print("Do you want to force push the changes? (yes/no): ")
-	var response string
-	if _, scanErr := fmt.Scanln(&response); scanErr != nil {
-		return fmt.Errorf("failed to read user input: %w", scanErr)
-	}
-
-	if strings.ToLower(response) == "yes" {
-		err = exec.CommandContext(ctx, "git", "push", "--force").Run()
-		if err != nil {
-			return fmt.Errorf("failed to force push: %w", err)
-		}
-		fmt.Println("Changes force pushed successfully.")
-	} else {
-		fmt.Println("To force push manually, run: git push --force")
-	}
 
 	return nil
 }
