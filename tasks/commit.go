@@ -45,6 +45,7 @@ func UpdateFirstCommit(ctx context.Context, message string) error {
 	}
 
 	// Amend commit message
+	// #nosec G204 -- message is passed as a discrete argument to exec.CommandContext, not interpolated into a shell string, so there is no injection risk
 	err = exec.CommandContext(ctx, "git", "commit", "--amend", "-m", message).Run()
 	if err != nil {
 		if abortErr := exec.CommandContext(ctx, "git", "rebase", "--abort").Run(); abortErr != nil {
